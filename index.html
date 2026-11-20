@@ -1,0 +1,146 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Figura libre</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Style suisse, Neue Grafik 1958-1965 : grille, grotesque, hiérarchie stricte. */
+:root{
+  --paper:#ffffff;--ink:#111111;--ink-soft:#77756f;
+  --f:"Helvetica Neue","Neue Haas Grotesk Display","Helvetica",Arial,sans-serif;
+}
+html,body{background:var(--paper)}
+body{color:var(--ink);font-family:var(--f);font-size:12px;line-height:1.3;margin:0}
+.wrap{max-width:1320px;margin:0 auto;padding-block:clamp(28px,5vw,64px) 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px),4vw);padding-right:max(16px,env(safe-area-inset-right,0px),4vw);
+  display:flex;flex-direction:column;gap:clamp(36px,6vw,88px)}
+h1{font-weight:700;font-size:clamp(84px,17vw,232px);line-height:1.02;letter-spacing:-.055em;margin:0 0 0 -.04em}
+.what{font-weight:400;font-size:clamp(20px,2.6vw,34px);line-height:1.1;letter-spacing:-.02em;margin:clamp(6px,1vw,12px) 0 0}
+.intro{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px 40px;margin-top:calc(-1 * clamp(20px,4vw,60px))}
+.def{margin:0;font-size:14px;line-height:1.35}
+.tools{display:flex;gap:22px}
+button{font:inherit;font-size:14px;line-height:1.3;background:none;border:0;padding:0;color:var(--ink-soft);cursor:pointer;text-align:left}
+button:hover{color:var(--ink)}
+button[aria-pressed="true"]{color:var(--ink);font-weight:700}
+button:focus-visible{outline:1px solid var(--ink);outline-offset:3px}
+
+.board{position:relative;overflow:hidden;touch-action:pan-y}
+.fig{position:absolute;margin:0;cursor:grab;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;align-items:center;
+  transition:left .7s cubic-bezier(.2,.8,.2,1),top .7s cubic-bezier(.2,.8,.2,1)}
+.fig.dragging{cursor:grabbing;transition:none;z-index:9999!important}
+.fig img{display:block;max-width:none}
+.fig figcaption{font-size:11px;line-height:1.25;color:var(--ink);white-space:nowrap;margin-top:6px}
+.fig figcaption{opacity:0;transition:opacity .2s}
+.fig:hover figcaption,.fig.dragging figcaption,.fig.show figcaption{opacity:1}
+@media (hover:none){.fig{cursor:default;-webkit-touch-callout:none}}
+.era{position:absolute;font-size:12px;font-weight:700;color:var(--ink);pointer-events:none}
+.legal{font-size:10.5px;line-height:1.45;color:var(--ink-soft);max-width:90ch;border-top:1px solid var(--ink);padding-top:12px}
+.legal a{color:var(--ink-soft)}
+@media (prefers-reduced-motion:reduce){.fig{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Figura</h1>
+    <p class="what">Atlas de la figure humaine</p>
+  </header>
+  <section class="intro" aria-label="Présentation">
+    <p class="def"><i>figura</i>, n. f. (lat.) La forme d'un corps,<br>et ce qu'elle annonce.</p>
+    <div class="tools">
+      <button id="btn-shuffle" type="button" aria-pressed="true">Hasard</button>
+      <button id="btn-time" type="button" aria-pressed="false">Époques</button>
+    </div>
+  </section>
+  <div class="board" id="board"></div>
+  <footer class="legal">Toutes les figures sont tirées d’œuvres du domaine public, dont les auteurs sont morts avant 1956. Sources principales : The Metropolitan Museum of Art (Open Access), Art Institute of Chicago (CC0), Wikimedia Commons.</footer>
+</div>
+
+<script>
+(function(){
+// [id, auteur, hauteur relative (850 = adulte debout), largeur relative, année]
+const DATA=[["alberti", "Leon Battista Alberti", 895, 602, 1485, "geste"], ["callot", "Jacques Callot", 825, 382, 1623, "ploie"], ["bernini", "Gian Lorenzo Bernini", 1037, 753, 1660, "geste"], ["loos", "Adolf Loos", 881, 543, 1910, "avec"], ["van-doesburg", "Theo van Doesburg", 914, 511, 1918, "mesure"], ["vesale", "André Vésale", 895, 526, 1543, "mesure"], ["degas", "Edgar Degas", 944, 496, 1873, "ploie"], ["schiele", "Egon Schiele", 737, 590, 1917, "ploie"], ["utamaro", "Kitagawa Utamaro", 966, 517, 1795, "pare"], ["rothaug", "Alexander Rothaug", 511, 833, 1900, "ploie"], ["schram", "Alois Hans Schram", 914, 434, 1900, "avec"], ["osbert", "Alphonse Osbert", 661, 1241, 1900, "avec"], ["hacker", "Arthur Hacker", 607, 426, 1900, "ploie"], ["rackham", "Arthur Rackham", 904, 485, 1908, "geste"], ["spitzweg", "Carl Spitzweg", 944, 641, 1850, "pare"], ["papety", "Dominique Papety", 1149, 480, 1847, "pare"], ["rops", "Félicien Rops", 955, 513, 1880, "pare"], ["hayez", "Francesco Hayez", 904, 737, 1848, "avec"], ["goya", "Francisco Goya", 940, 909, 1798, "geste"], ["craig", "Frank Craig", 923, 869, 1905, "avec"], ["erler", "Fritz Erler", 895, 526, 1910, "geste"], ["bracelli", "Giovanni Battista Bracelli", 1037, 587, 1624, "mesure"], ["dore", "Gustave Doré", 1037, 813, 1866, "ploie"], ["moreau", "Gustave Moreau", 1012, 497, 1864, "avec"], ["fidus", "Fidus (Hugo Höppener)", 1002, 546, 1900, "pare"], ["gamelin", "Jacques Gamelin", 588, 762, 1779, "mesure"], ["stuart", "James Stuart et Nicholas Revett", 331, 1146, 1787, "mesure"], ["fussli", "Johann Heinrich Füssli", 885, 577, 1790, "geste"], ["shunsho", "Katsukawa Shunshō", 904, 772, 1777, "pare"], ["kyosai", "Kawanabe Kyōsai", 745, 815, 1880, "geste"], ["leroux", "Louis Hector Leroux", 895, 277, 1870, "ploie"], ["moe", "Louis Moe", 787, 515, 1900, "ploie"], ["schneider", "Sascha Schneider", 771, 909, 1904, "geste"], ["lipinsky", "Sigmund Lipinsky", 559, 737, 1910, "avec"], ["vereshchagin", "Vassili Verechtchaguine", 944, 367, 1875, "pare"], ["bernatzik", "Wilhelm Bernatzik", 977, 212, 1900, "pare"], ["reyl", "Herbert Reyl-Hanisch", 899, 254, 1925, "mesure"], ["bakst", "Léon Bakst", 627, 931, 1910, "geste"], ["botticelli", "Sandro Botticelli", 924, 406, 1485, "pare"], ["ingres", "Jean-Auguste-Dominique Ingres", 468, 869, 1830, "ploie"], ["friedrich", "Caspar David Friedrich", 889, 364, 1818, "mesure"], ["klimt", "Gustav Klimt", 934, 476, 1879, "geste"], ["manet", "Édouard Manet", 889, 401, 1866, "pare"], ["caillebotte", "Gustave Caillebotte", 1000, 588, 1877, "avec"], ["lenz", "Maximilian Lenz", 895, 769, 1899, "pare"], ["crane", "Walter Crane", 1032, 566, 1890, "geste"], ["tenniel", "John Tenniel", 870, 290, 1865, "mesure"], ["lhermitte", "Léon Lhermitte", 880, 463, 1890, "geste"], ["velazquez", "Diego Velázquez", 850, 437, 1624, "pare"], ["sharaku", "Tōshūsai Sharaku", 860, 331, 1794, "pare"], ["munch", "Edvard Munch", 850, 612, 1898, "avec"], ["sargent", "John Singer Sargent", 860, 299, 1884, "pare"], ["gainsborough", "Thomas Gainsborough", 900, 471, 1778, "pare"], ["tiepolo", "Giovanni Battista Tiepolo", 1000, 611, 1750, "pare"], ["kiyonaga", "Torii Kiyonaga", 950, 545, 1790, "pare"], ["rubens", "Pierre Paul Rubens", 900, 367, 1617, "pare"], ["cassatt", "Mary Cassatt", 820, 318, 1891, "ploie"], ["hiroshige", "Utagawa Hiroshige", 1000, 492, 1845, "pare"], ["kuniyoshi", "Utagawa Kuniyoshi", 1139, 507, 1840, "geste"], ["gauguin", "Paul Gauguin", 850, 223, 1896, "pare"], ["raphael", "Raphaël", 850, 625, 1509, "geste"], ["holbein", "Hans Holbein le Jeune", 880, 397, 1527, "geste"], ["bruegel", "Pieter Bruegel l'Ancien", 850, 425, 1565, "avec"], ["cezanne", "Paul Cézanne", 720, 452, 1889, "pare"], ["rembrandt", "Rembrandt", 930, 309, 1646, "ploie"], ["ostade", "Adriaen van Ostade", 880, 411, 1650, "ploie"], ["renoir", "Pierre-Auguste Renoir", 880, 436, 1890, "pare"], ["delacroix", "Eugène Delacroix", 900, 476, 1826, "pare"], ["hokusai", "Katsushika Hokusai", 880, 470, 1820, "avec"], ["watteau", "Antoine Watteau", 920, 313, 1718, "pare"], ["vangogh", "Vincent van Gogh", 700, 502, 1885, "ploie"], ["durer", "Albrecht Dürer", 920, 448, 1508, "avec"], ["vallotton", "Félix Vallotton", 900, 287, 1900, "pare"], ["millet", "Jean-François Millet", 800, 459, 1857, "geste"], ["courbet", "Gustave Courbet", 780, 620, 1866, "geste"], ["whistler", "James McNeill Whistler", 930, 480, 1871, "pare"], ["sand", "Maurice Sand", 900, 393, 1860, "avec"], ["hollar", "Wenceslaus Hollar", 920, 503, 1644, "pare"], ["blake", "William Blake", 935, 297, 1789, "pare"], ["fragonard", "Jean-Honoré Fragonard", 720, 979, 1767, "pare"], ["kahlo", "Frida Kahlo", 880, 449, 1932, "pare"], ["matisse", "Henri Matisse", 900, 475, 1946, "geste"], ["seurat", "Georges Seurat", 914, 332, 1884, "pare"], ["michelange", "Michel-Ange", 820, 601, 1511, "geste"], ["rodin", "Auguste Rodin", 870, 609, 1906, "geste"], ["sartorio", "Giulio Aristide Sartorio", 867, 707, 1900, "ploie"], ["hodler", "Ferdinand Hodler", 880, 626, 1906, "geste"], ["mucha", "Alfons Mucha", 870, 285, 1897, "pare"]];
+const board=document.getElementById('board');
+
+let els=[],mode='hasard';
+const ROM=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI'];
+function make(d){
+  const el=document.createElement('figure');el.className='fig';
+  el.innerHTML=`<img src="img/${d[0]}.png" alt="Figure de ${d[1]}" draggable="false"><figcaption>${d[1]}, ${d[4]}</figcaption>`;
+  el._d=d;board.appendChild(el);drag(el);return el;
+}
+function sizeAll(rand){
+  const W=board.clientWidth,narrow=W<700,base=narrow?96:150;
+  return els.map(el=>{const d=el._d;
+    const h=Math.round(base*(d[2]/850)*(rand?(.88+Math.random()*.24):1)),w=Math.round(h*d[3]/d[2]);
+    const img=el.querySelector('img');img.style.height=h+'px';img.style.width=w+'px';
+    const cw=el.querySelector('figcaption').scrollWidth;
+    return {w,h,bw:Math.max(w,cw),bh:h+20};});
+}
+function clearEras(){board.querySelectorAll('.era').forEach(e=>e.remove());}
+function layoutRandom(){
+  clearEras();const W=board.clientWidth,narrow=W<700;const sizes=sizeAll(true);
+  const area=sizes.reduce((a,s)=>a+(s.bw+24)*(s.bh+16),0);
+  const H=Math.max(narrow?800:640,Math.round(area*(narrow?2.4:2.3)/W));
+  board.style.height=H+'px';
+  const placed=[];
+  els.map((e,i)=>i).sort(()=>Math.random()-.5).forEach(i=>{
+    const el=els[i],{bw,bh}=sizes[i];let best=null,bh2=1e9;
+    for(let t=0;t<900;t++){
+      const x=Math.random()*Math.max(1,W-bw),y=Math.random()*Math.max(1,H-bh);
+      const hit=placed.filter(b=>x<b.x+b.w+14&&x+bw+14>b.x&&y<b.y+b.h+10&&y+bh+10>b.y).length;
+      if(hit<bh2){bh2=hit;best={x,y,w:bw,h:bh};if(!hit)break;}
+    }
+    placed.push(best);el.style.left=best.x+'px';el.style.top=best.y+'px';el.style.width=bw+'px';
+    el.style.zIndex=Math.round(best.y+bh);
+  });
+}
+const AFF=[['mesure','Le corps mesuré'],['geste','Le geste qui désigne'],['ploie','Le corps qui ploie'],['pare','Le corps paré'],['avec','Être avec']];
+function layoutGroups(groupOf,labelOf,order,gapG){
+  clearEras();const W=board.clientWidth;const sizes=sizeAll(false);const gap=18;
+  let x=0,y=26,rowH=0,row=[],cur=null;
+  const flush=()=>{row.forEach(i=>{els[i].style.top=(y+rowH-sizes[i].bh)+'px';});y+=rowH+56;x=0;rowH=0;row=[];};
+  order.forEach(i=>{const s=sizes[i],el=els[i],g=groupOf(i);
+    if(g!==cur){ if(x>0){x+=gapG; if(x+s.bw>W)flush();}
+      cur=g;const lab=document.createElement('div');lab.className='era';lab.textContent=labelOf(g);lab.style.left=x+'px';lab.style.top=(y-22)+'px';board.appendChild(lab);lab._row=y;
+    } else { if(x>0)x+=gap; if(x>0&&x+s.bw>W)flush(); }
+    el.style.left=x+'px';el.style.width=s.bw+'px';el.style.zIndex=1;x+=s.bw;rowH=Math.max(rowH,s.bh);row.push(i);});
+  if(row.length)flush();
+  board.style.height=(y-30)+'px';
+}
+function layoutTime(){
+  const order=els.map((e,i)=>i).sort((a,b)=>els[a]._d[4]-els[b]._d[4]);
+  layoutGroups(i=>Math.ceil(els[i]._d[4]/100),c=>ROM[c]+'e',order,44);
+}
+function layoutAff(){
+  const rank=k=>{const j=AFF.findIndex(a=>a[0]===k);return j<0?99:j;};
+  const order=els.map((e,i)=>i).sort((a,b)=>rank(els[a]._d[5])-rank(els[b]._d[5])||els[a]._d[4]-els[b]._d[4]);
+  layoutGroups(i=>els[i]._d[5]||'autres',k=>(AFF.find(a=>a[0]===k)||[,'Autres'])[1],order,70);
+}
+function layout(){mode==='temps'?layoutTime():mode==='aff'?layoutAff():layoutRandom();}
+function drag(el){
+  let sx,sy,ox,oy;
+  el.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='touch'||e.button!==0){return;}
+    e.preventDefault();el.setPointerCapture(e.pointerId);el.classList.add('dragging');sx=e.clientX;sy=e.clientY;ox=el.offsetLeft;oy=el.offsetTop;});
+  el.addEventListener('pointermove',e=>{if(!el.classList.contains('dragging'))return;el.style.left=(ox+e.clientX-sx)+'px';el.style.top=(oy+e.clientY-sy)+'px';});
+  const end=()=>{if(!el.classList.contains('dragging'))return;el.classList.remove('dragging');el.style.zIndex=Math.round(el.offsetTop+el.offsetHeight);};
+  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+  // Téléphone : appui long (≈0,35 s) pour saisir la figure, sinon le doigt fait défiler la page.
+  let tm=null,tx,ty,tdrag=false;
+  el.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;const t=e.touches[0];tx=t.clientX;ty=t.clientY;
+    tm=setTimeout(()=>{tm=null;tdrag=true;el.classList.add('dragging','show');sx=tx;sy=ty;ox=el.offsetLeft;oy=el.offsetTop;if(navigator.vibrate)navigator.vibrate(10);},350);},{passive:true});
+  el.addEventListener('touchmove',e=>{const t=e.touches[0];
+    if(tdrag){e.preventDefault();el.style.left=(ox+t.clientX-sx)+'px';el.style.top=(oy+t.clientY-sy)+'px';return;}
+    if(tm&&Math.hypot(t.clientX-tx,t.clientY-ty)>8){clearTimeout(tm);tm=null;}},{passive:false});
+  const tend=()=>{if(tm){clearTimeout(tm);tm=null;}if(tdrag){tdrag=false;el.classList.remove('dragging');el.style.zIndex=Math.round(el.offsetTop+el.offsetHeight);el._moved=Date.now();}};
+  el.addEventListener('touchend',tend);el.addEventListener('touchcancel',tend);
+  el.addEventListener('contextmenu',e=>{if(tdrag||matchMedia('(hover:none)').matches)e.preventDefault();});
+  el.addEventListener('click',()=>{if(el._moved&&Date.now()-el._moved<400)return;if(matchMedia('(hover:none)').matches){const on=!el.classList.contains('show');board.querySelectorAll('.fig.show').forEach(f=>f.classList.remove('show'));if(on)el.classList.add('show');}});
+}
+const bH=document.getElementById('btn-shuffle'),bT=document.getElementById('btn-time');
+function setMode(m){mode=m;bH.setAttribute('aria-pressed',m==='hasard');bT.setAttribute('aria-pressed',m==='temps');layout();}
+bH.addEventListener('click',()=>setMode('hasard'));bT.addEventListener('click',()=>setMode('temps'));
+let lw=0;new ResizeObserver(()=>{const w=board.clientWidth;if(Math.abs(w-lw)>40){lw=w;layout();}}).observe(board);
+DATA.forEach(d=>els.push(make(d)));layout();lw=board.clientWidth;
+})();
+</script>
+
+</body></html>
